@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>📘 โปรแกรมจัดการหนังสือ</title>
+  <style>
+    body { font-family: sans-serif; padding: 30px; max-width: 600px; margin: auto; background: #f9f9f9; }
+    h1 { text-align: center; color: #2b4c7e; }
+    .menu { display: flex; justify-content: space-around; margin: 20px 0; }
+    .menu button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    .section { display: none; border: 1px solid #ccc; padding: 20px; background: #fff; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .section.active { display: block; }
+    input, button { width: 100%; padding: 10px; margin: 10px 0; font-size: 16px; }
+    #bookList ul { padding-left: 20px; }
+    #result { margin-top: 20px; background: #e7f3ff; padding: 15px; border-left: 4px solid #2196F3; }
+  </style>
+</head>
+<body>
+  <h1>📚 โปรแกรมจัดการหนังสือ</h1>
+  <div class="menu">
+    <button onclick="showSection('insert')">เพิ่ม</button>
+    <button onclick="showSection('select')">แสดง</button>
+    <button onclick="showSection('update')">แก้ไข</button>
+    <button onclick="showSection('delete')">ลบ</button>
+  </div>
+
+  <div id="insert" class="section">
+    <h2>เพิ่มหนังสือ</h2>
+    <input type="text" id="insertTitle" placeholder="ชื่อหนังสือ">
+    <input type="number" id="insertQty" placeholder="จำนวน">
+    <button onclick="insertBook()">📥 เพิ่ม</button>
+  </div>
+
+  <div id="select" class="section">
+    <h2>รายการหนังสือ</h2>
+    <button onclick="getBooks()">📋 โหลดข้อมูล</button>
+    <div id="bookList"></div>
+  </div>
+
+  <div id="update" class="section">
+    <h2>แก้ไขหนังสือ</h2>
+    <input type="number" id="updateId" placeholder="Book ID">
+    <input type="text" id="updateTitle" placeholder="ชื่อใหม่">
+    <input type="number" id="updateQty" placeholder="จำนวนใหม่">
+    <button onclick="updateBook()">🛠️ แก้ไข</button>
+  </div>
+
+  <div id="delete" class="section">
+    <h2>ลบหนังสือ</h2>
+    <input type="number" id="deleteId" placeholder="Book ID">
+    <button onclick="deleteBook()">🗑️ ลบ</button>
+  </div>
+
+  <div id="result"></div>
+
+  <script>
+    const apiBase = "https://6b2f-2001-fb1-b1-1c5c-e431-6914-1883-6fc7.ngrok-free.app";
+
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    async function insertBook() {
+      const title = document.getElementById("insertTitle").value;
+      const quantity = document.getElementById("insertQty").value;
+      const res = await fetch(`${apiBase}/books`, {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, quantity })
+      });
+      document.getElementById("result").innerText = await res.text();
+    }
+
+    async function getBooks() {
+      const res = await fetch(`${apiBase}/books`);
+      const books = await res.json();
+      let html = '<ul>' + books.map(b => `<li><strong>${b.Title}</strong> (${b.Quantity}) [ID: ${b.BookID}]</li>`).join('') + '</ul>';
+      document.getElementById("bookList").innerHTML = html;
+    }
+
+    async function updateBook() {
+      const id = document.getElementById("updateId").value;
+      const title = document.getElementById("updateTitle").value;
+      const quantity = document.getElementById("updateQty").value;
+      const res = await fetch(`${apiBase}/books/${id}`, {
+        method: "PUT",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, quantity })
+      });
+      document.getElementById("result").innerText = await res.text();
+    }
+
+    async function deleteBook() {
+      const id = document.getElementById("deleteId").value;
+      const res = await fetch(`${apiBase}/books/${id}`, { method: "DELETE" });
+      document.getElementById("result").innerText = await res.text();
+    }
+  </script>
+</body>
+</html>
